@@ -114,6 +114,8 @@ for (i in 1:length(intervalvector)){
         index <- index + 1        
 }
 
+
+
 par(mfrow = c(1,1))
 plot(intervalvector,mediantotalsteps, type ="l")
 
@@ -164,8 +166,6 @@ for (i in 1:length(datevector)){
         index <- index + 1
 }
 
-meandata <- data.frame(date=as.Date(datetotalsteps, "%Y-%m-%d"), mean=meantotalsteps, stringsAsFactors = FALSE)
-
 ## median
 
 stepsperday <- vector()
@@ -206,6 +206,11 @@ medianstepsperday <- data.frame(date=as.Date(datetotalsteps, "%Y-%m-%d"), median
 
 reportmeanmedian <- merge(meandata, mediantotalsteps)
 
+par(mfrow=c(1,2))
+
+plot(meandata, type ="h", col = "blue" , main = "Mean steps per day")
+plot(medianstepsperday, type ="h", col = "blue" , main = "Median steps per day")
+
 ##Do these values differ from the estimates from the first part of the assignment? 
 
 par(mfrow = c(2, 2), pty = "s") ## multiple plots
@@ -213,37 +218,49 @@ par(mfrow = c(2, 2), pty = "s") ## multiple plots
 plot(initialmeandata, type ="h", col = "red", main = "Initial mean steps per day")
 plot(initialmedianstepsperday, type ="h", col = "red", main = "Initial median steps per day")
 plot(meandata, type ="h", col = "blue" , main = "Final mean steps per day")
-plot(mediantotalsteps, type ="h", col = "blue" , main = "Final median steps per day")
+plot(medianstepsperday, type ="h", col = "blue" , main = "Final median steps per day")
 
 
 ##What is the impact of imputing missing data on the estimates of the total daily number of steps?
 
-missingimputeddata <- rawactivity
-
-for (i in 1:length(missingimputeddata$steps)){
-        
-        if (is.na(missingimputeddata$steps[i])){
-                missingimputeddata$steps[i] <- 1
-        }
-}
-        
-midatevector <- unique(as.Date(missingimputeddata$date, "%Y-%m-%d")) # Missing Imput as mi
-
-mitotalsteps <- vector()
-midatetotalsteps <- vector()
-miindex <- 1
-
-for (i in 1:length(midatevector)){
-        
-        mitotalsteps[miindex] <- sum(missingimputeddata[missingimputeddata[, "date"] ==  eval(midatevector[i]),][,1])
-        midatetotalsteps[miindex] <- as.character(midatevector[i])
-        miindex <- miindex + 1
-        
-}
-
-misumdata <- data.frame(date=as.Date(midatetotalsteps, "%Y-%m-%d"), total.steps=mitotalsteps, stringsAsFactors = FALSE)
+finaltotalstepsperday <- data.frame(meandata$date,sumstepsperday,stringsAsFactors = FALSE)
 
 par(mfrow= c(1,2))
 
 plot(sumdata, type = "h", col = "blue", main = "Total number of steps \n Cleaned")
-plot(misumdata, type = "h", col = "red", main = "Total number of steps \n Missing data imputed as 1")
+plot(finaltotalstepsperday, type = "h", col = "red", main = "Total number of steps \n Missing data imputed")
+
+##Are there differences in activity patterns between weekdays and weekends?
+
+##For this part the weekdays() function may be of some help here. Use the dataset with the filled-in missing values for this part.
+
+weeklyactivity <- rawactivity
+
+dayoftheweek <- vector()
+
+##Create a new factor variable in the dataset with two levels - "weekday" and "weekend" indicating whether a given date is a weekday or weekend day.
+
+for (i in 1:length(weeklyactivity$date)){
+        if (as.POSIXlt(weeklyactivity$date[i])$wday == 0){
+                dayoftheweek[i] <- "weekend"
+        }else{
+                if (as.POSIXlt(weeklyactivity$date[i])$wday == 6){
+                        dayoftheweek[i] <- "weekend"
+                }else{
+                        dayoftheweek[i] <- "weekday"        
+                }
+        }
+}
+
+weeklyactivity <- cbind(weeklyactivity, "weekday"=as.factor(dayoftheweek))
+
+weekdaysubset <- weeklyactivity[weeklyactivity [,"weekday"] == "weekday",]
+weekendsubset <- weeklyactivity[weeklyactivity [,"weekday"] == "weekend",]
+
+##Make a panel plot containing a time series plot (i.e. type = "l") of the 5-minute interval (x-axis) and the average number of steps taken, averaged across all weekday days or weekend days (y-axis). See the README file in the GitHub repository to see an example of what this plot should look like using simulated data.
+
+par(mfrow = c(1,2))
+
+plot(weekdaysubset$interval, weekdaysubset$steps, main = "WeekDays", type = "l", col = "blue")
+plot(weekendsubset$interval, weekendsubset$steps, main = "WeekEnds" , type = "l", col = "blue")
+
