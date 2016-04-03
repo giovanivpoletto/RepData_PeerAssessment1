@@ -8,7 +8,17 @@ output:
 
 ## Loading and preprocessing the data
 
+1. Load the data (i.e. read.csv())
 
+```{r}
+rawactivity <- read.csv(unzip("activity.zip"))
+```
+
+2. Process/transform the data (if necessary) into a format suitable for your analysis
+
+```{r}
+rawactivity$date <- as.Date(rawactivity$date, "%Y-%m-%d")
+```
 
 ## What is mean total number of steps taken per day?
 

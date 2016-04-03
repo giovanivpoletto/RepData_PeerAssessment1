@@ -1,6 +1,7 @@
 library(ggplot2)
+
 #loading data - considering the activity.zip file is on the same directory as the script.
-rawactivity <- read.csv(unzip("activity.zip"))
+rawactivity <- read.csv(unzip("repdata-data-activity.zip"))
 
 rawactivity$date <- as.Date(rawactivity$date, "%Y-%m-%d")
 
@@ -25,9 +26,10 @@ sumdata <- data.frame(date=as.Date(datetotalsteps, "%Y-%m-%d"), total.steps=tota
 
 ##1.2. Make a histogram of the total number of steps taken each day.
 
-plot(sumdata, type = "h", main = "Total number of steps taken each day")
 
-##qplot(total.steps, data=sumdata, geom="histogram", binwidth=3)
+par(mfrow= c(1,1))
+
+plot(sumdata, type = "h", main = "Total number of steps taken each day")
 
 ##1.3. Calculate and report the mean and median of the total number of steps taken per day
 
@@ -44,7 +46,7 @@ for (i in 1:length(datevector)){
         }
 }
 
-meandata <- data.frame(date=as.Date(datetotalsteps, "%Y-%m-%d"), mean=meantotalsteps, stringsAsFactors = FALSE)
+initialmeandata <- data.frame(date=as.Date(datetotalsteps, "%Y-%m-%d"), mean=meantotalsteps, stringsAsFactors = FALSE)
 
 ## median
 
@@ -73,15 +75,15 @@ for (i in 1:length(datevector)){
         index <- index + 1        
 }
 
-medianstepsperday <- data.frame(date=as.Date(datetotalsteps, "%Y-%m-%d"), median=mediantotalsteps, stringsAsFactors = FALSE)
+initialmedianstepsperday <- data.frame(date=as.Date(datetotalsteps, "%Y-%m-%d"), median=mediantotalsteps, stringsAsFactors = FALSE)
 
-reportmeanmedian <- merge(meandata, medianstepsperday)
+reportmeanmedian <- merge(initialmeandata, initialmedianstepsperday)
 
 reportmeanmedian
 
 ##2. ###What is the average daily activity pattern?
 
-##2.1. Make a time series plot (i.e. type = "l") of the 5-minute interval (x-axis) and the average number of steps taken, averaged across all days (y-axis)
+##2.1. Make a time series plot (i.e. type = "l") of the 5-minute interval (x-axis) and the average number of steps taken, averaged across all days (y-axis).
 
 stepsperinterval <- vector()
 sumstepsperinterval <- vector()
@@ -112,6 +114,7 @@ for (i in 1:length(intervalvector)){
         index <- index + 1        
 }
 
+par(mfrow = c(1,1))
 plot(intervalvector,mediantotalsteps, type ="l")
 
 ##2.2. Which 5-minute interval, on average across all the days in the dataset, contains the maximum number of steps?
@@ -149,8 +152,6 @@ for (i in 1:length(datevector)){
 meandata <- data.frame(date=as.Date(datetotalsteps, "%Y-%m-%d"), mean=meantotalsteps, stringsAsFactors = FALSE)
 
 ##Make a histogram of the total number of steps taken each day and Calculate and report the mean and median total number of steps taken per day. 
-##Do these values differ from the estimates from the first part of the assignment? 
-##What is the impact of imputing missing data on the estimates of the total daily number of steps?
 
 ## mean
 meantotalsteps <- vector()
@@ -203,8 +204,46 @@ for (i in 1:length(datevector)){
 
 medianstepsperday <- data.frame(date=as.Date(datetotalsteps, "%Y-%m-%d"), median=mediantotalsteps, stringsAsFactors = FALSE)
 
-reportmeanmedian <- merge(meandata, medianstepsperday)
+reportmeanmedian <- merge(meandata, mediantotalsteps)
 
-reportmeanmedian
+##Do these values differ from the estimates from the first part of the assignment? 
+
+par(mfrow = c(2, 2), pty = "s") ## multiple plots
+
+plot(initialmeandata, type ="h", col = "red", main = "Initial mean steps per day")
+plot(initialmedianstepsperday, type ="h", col = "red", main = "Initial median steps per day")
+plot(meandata, type ="h", col = "blue" , main = "Final mean steps per day")
+plot(mediantotalsteps, type ="h", col = "blue" , main = "Final median steps per day")
 
 
+##What is the impact of imputing missing data on the estimates of the total daily number of steps?
+
+missingimputeddata <- rawactivity
+
+for (i in 1:length(missingimputeddata$steps)){
+        
+        if (is.na(missingimputeddata$steps[i])){
+                missingimputeddata$steps[i] <- 1
+        }
+}
+        
+midatevector <- unique(as.Date(missingimputeddata$date, "%Y-%m-%d")) # Missing Imput as mi
+
+mitotalsteps <- vector()
+midatetotalsteps <- vector()
+miindex <- 1
+
+for (i in 1:length(midatevector)){
+        
+        mitotalsteps[miindex] <- sum(missingimputeddata[missingimputeddata[, "date"] ==  eval(midatevector[i]),][,1])
+        midatetotalsteps[miindex] <- as.character(midatevector[i])
+        miindex <- miindex + 1
+        
+}
+
+misumdata <- data.frame(date=as.Date(midatetotalsteps, "%Y-%m-%d"), total.steps=mitotalsteps, stringsAsFactors = FALSE)
+
+par(mfrow= c(1,2))
+
+plot(sumdata, type = "h", col = "blue", main = "Total number of steps \n Cleaned")
+plot(misumdata, type = "h", col = "red", main = "Total number of steps \n Missing data imputed as 1")
